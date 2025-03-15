@@ -1,5 +1,4 @@
 "use client";
-
 interface Meteorite {
   id: number;
   name: string;
@@ -9,28 +8,27 @@ interface Meteorite {
   location: string;
 }
 
-export default function MeteoriteList({ results }: { results: Meteorite[] }) {
+interface MeteoriteListProps {
+  results: Meteorite[];
+}
+
+export default function MeteoriteList({ results }: MeteoriteListProps) {
+  if (!results.length) return <p className="text-gray-400 text-center mt-6">No results found.</p>;
+
   return (
-    <div className="mt-6">
-      <h3 className="text-lg font-semibold text-gray-300">Results:</h3>
-      {results.length === 0 ? (
-        <p className="text-gray-400">No meteorites found.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {results.map((m) => (
-            <div
-              key={m.id}
-              className="bg-gray-800 p-4 rounded shadow-md flex flex-col"
-            >
-              <h4 className="text-blue-300 font-bold">{m.name}</h4>
-              <p className="text-gray-400">Class: {m.recclass}</p>
-              <p className="text-gray-400">Mass: {m.mass}g</p>
-              <p className="text-gray-400">Year: {m.year}</p>
-              <p className="text-gray-400">Location: {m.location}</p>
-            </div>
-          ))}
+    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {results.map((meteorite) => (
+        <div
+          key={meteorite.id}
+          className="bg-gray-800 p-4 rounded-lg shadow-lg hover:scale-105 transition-transform duration-200"
+        >
+          <h3 className="text-xl font-bold text-blue-400">{meteorite.name}</h3>
+          <p className="text-gray-300">Class: {meteorite.recclass}</p>
+          <p className="text-gray-300">Mass: {meteorite.mass}g</p>
+          <p className="text-gray-300">Year: {meteorite.year}</p>
+          <p className="text-gray-300">📍 Location: {meteorite.location}</p>
         </div>
-      )}
+      ))}
     </div>
   );
 }

@@ -14,18 +14,41 @@ import (
 func GetAllMeteorites(c *gin.Context) {
 	limit := 50
 	offset := 0
+	yearStart, yearEnd := 0, 9999
+	massMin, massMax := 0.0, 10000000.0
 
-	if c.Query("limit") != "" {
-		limit, _ = strconv.Atoi(c.Query("limit"))
+	// Parse Query Parameters
+	if v := c.Query("limit"); v != "" {
+		limit, _ = strconv.Atoi(v)
 	}
-	if c.Query("offset") != "" {
-		offset, _ = strconv.Atoi(c.Query("offset"))
+	if v := c.Query("offset"); v != "" {
+		offset, _ = strconv.Atoi(v)
 	}
-	log.Printf("📡 Fetching meteorites with limit=%d, offset=%d", limit, offset)
+	if v := c.Query("year_start"); v != "" {
+		yearStart, _ = strconv.Atoi(v)
+	}
+	if v := c.Query("year_end"); v != "" {
+		yearEnd, _ = strconv.Atoi(v)
+	}
+	if v := c.Query("mass_min"); v != "" {
+		massMin, _ = strconv.ParseFloat(v, 64)
+	}
+	if v := c.Query("mass_max"); v != "" {
+		massMax, _ = strconv.ParseFloat(v, 64)
+	}
+
+	log.Printf("📡 Fetching meteorites with limit=%d, offset=%d, year=[%d-%d], mass=[%.2f-%.2f]", limit, offset, yearStart, yearEnd, massMin, massMax)
+
 	query := `
 		SELECT id, name, recclass, mass, year, ST_AsText(geom) AS location
-		FROM locations`
-	meteorites, err := FetchMeteorites(c, query, limit, offset)
+		FROM locations
+		WHERE year BETWEEN $1 AND $2
+		AND mass BETWEEN $3 AND $4
+		ORDER BY year DESC
+		LIMIT $5 OFFSET $6;
+	`
+
+	meteorites, err := FetchMeteoritesRaw(c, query, yearStart, yearEnd, massMin, massMax, limit, offset)
 	if err != nil {
 		log.Printf("❌ Failed to fetch meteorites: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data", "details": err.Error()})
@@ -34,11 +57,13 @@ func GetAllMeteorites(c *gin.Context) {
 	log.Printf("✅ Returning %d meteorites", len(meteorites))
 	c.JSON(http.StatusOK, meteorites)
 }
+
+// Return the 10 largest meteorites
 func GetLargestMeteorites(c *gin.Context) {
 	log.Println("📡 Fetching the 10 largest meteorites...")
 
 	query := `
-		SELECT name, recclass, mass, year, ST_AsText(geom) AS location
+		SELECT id, name, recclass, mass, year, ST_AsText(geom) AS location
 		FROM locations
 		ORDER BY mass DESC
 		LIMIT 10;
@@ -54,8 +79,6 @@ func GetLargestMeteorites(c *gin.Context) {
 	log.Printf("✅ Returning %d largest meteorites", len(meteorites))
 	c.JSON(http.StatusOK, meteorites)
 }
-
-// GetNearbyMeteorites - Returns meteorites near a given location **with concurrency**
 func GetNearbyMeteorites(c *gin.Context) {
 	lat, err1 := strconv.ParseFloat(c.Query("lat"), 64)
 	lon, err2 := strconv.ParseFloat(c.Query("lon"), 64)
@@ -82,15 +105,15 @@ func GetNearbyMeteorites(c *gin.Context) {
 		args  []interface{}
 	}{
 		{
-			query: "SELECT * FROM locations WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3)",
+			query: "SELECT id, name, recclass, mass, year, ST_AsText(geom) AS location FROM locations WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $3)",
 			args:  []interface{}{lon, lat, radius},
 		},
 		{
-			query: "SELECT * FROM locations WHERE year BETWEEN $1 AND $2",
+			query: "SELECT id, name, recclass, mass, year, ST_AsText(geom) AS location FROM locations WHERE year BETWEEN $1 AND $2",
 			args:  []interface{}{yearStart, yearEnd},
 		},
 		{
-			query: "SELECT * FROM locations WHERE mass BETWEEN $1 AND $2",
+			query: "SELECT id, name, recclass, mass, year, ST_AsText(geom) AS location FROM locations WHERE mass BETWEEN $1 AND $2",
 			args:  []interface{}{massMin, massMax},
 		},
 	}
@@ -98,7 +121,7 @@ func GetNearbyMeteorites(c *gin.Context) {
 		wg.Add(1)
 		go func(query string, args []interface{}) {
 			defer wg.Done()
-			data, err := FetchMeteoritesRaw(c, query, args)
+			data, err := FetchMeteoritesRaw(c, query, args...)
 			if err != nil {
 				errorsChan <- err
 				return
@@ -109,6 +132,7 @@ func GetNearbyMeteorites(c *gin.Context) {
 	wg.Wait()
 	close(resultsChan)
 	close(errorsChan)
+
 	// Merge results
 	var mergedResults []models.Meteorite
 	for r := range resultsChan {
@@ -122,7 +146,7 @@ func GetNearbyMeteorites(c *gin.Context) {
 	log.Printf("✅ Found %d meteorites near given location", len(mergedResults))
 	c.JSON(http.StatusOK, mergedResults)
 }
-func FetchMeteoritesRaw(c *gin.Context, query string, args []interface{}) ([]models.Meteorite, error) {
+func FetchMeteoritesRaw(c *gin.Context, query string, args ...interface{}) ([]models.Meteorite, error) {
 	var meteorites []models.Meteorite
 	err := db.DB.Select(&meteorites, query, args...)
 	if err != nil {

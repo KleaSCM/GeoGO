@@ -1,22 +1,28 @@
 import React from "react";
-import "@/app/globals.css";
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import "@/app/globals.scss"; 
+
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
-        <nav className="bg-gray-800 p-4 shadow-md">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-xl font-bold text-blue-400">GeoGO 🌍</h1>
-            <span className="text-gray-300">ROCKS</span>
-          </div>
+     <body className="body">
+        
+        <nav className="flex justify-between items-center p-4 shadow-md rounded-lg">
+          <h1 className="text-3xl font-bold text-blue-400 transition-transform duration-200 hover:scale-105">
+            🌍 GeoGO
+          </h1>
+          <span className="text-gray-300 text-sm tracking-wide italic">
+            Discovering Space Rocks
+          </span>
         </nav>
+
+        
         <main className="flex-1 container mx-auto p-6">{children}</main>
-        <footer className="bg-gray-800 text-gray-400 text-center py-4 mt-6">
-          © {new Date().getFullYear()} GeoGO - ROCKS VERYROCKS
+
+      
+        <footer>
+          <p>Sylavanas is still Warchief</p>
+          <p>© {new Date().getFullYear()} FLYING ROCKS</p>
         </footer>
       </body>
     </html>

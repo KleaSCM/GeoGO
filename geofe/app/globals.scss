@@ -1,0 +1,66 @@
+
+$bg-color: #0a0f1c;
+$text-color: #f1f1f1;
+$card-bg: rgba(255, 255, 255, 0.1);
+$card-hover: rgba(255, 255, 255, 0.15);
+$border-color: rgba(255, 255, 255, 0.2);
+$blue-glow: #4c9aff;
+
+
+body {
+  background: linear-gradient(to right, #0a0f1c, #121a2a);
+  color: $text-color;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+// 🚀 Navigation bar styling
+nav {
+  background: rgba(10, 15, 28, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+// Footer
+footer {
+  text-align: center;
+  padding: 20px;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.meteorite-card {
+  background: $card-bg;
+  backdrop-filter: blur(8px);
+  padding: 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease-in-out;
+  border: 1px solid $border-color;
+
+  &:hover {
+    transform: translateY(-5px);
+    background: $card-hover;
+    box-shadow: 0px 5px 20px rgba(76, 154, 255, 0.3);
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: $blue-glow;
+  }
+
+  p {
+    opacity: 0.8;
+  }
+}
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #4f8ef7;
+}

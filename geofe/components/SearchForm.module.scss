@@ -1,0 +1,48 @@
+$bg-glass: rgba(255, 255, 255, 0.1);
+$border-glass: rgba(255, 255, 255, 0.2);
+$focus-ring: rgba(76, 154, 255, 0.5);
+
+.search-container {
+  background: $bg-glass;
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.1);
+  border: 1px solid $border-glass;
+  transition: all 0.3s ease-in-out;
+
+  &:hover {
+    box-shadow: 0px 5px 20px rgba(76, 154, 255, 0.3);
+  }
+}
+
+.search-input {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid $border-glass;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease-in-out;
+
+  &:focus {
+    border-color: $focus-ring;
+    outline: none;
+    box-shadow: 0px 0px 10px $focus-ring;
+  }
+}
+
+.search-button {
+  background: linear-gradient(135deg, #4c9aff, #007bff);
+  padding: 12px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 5px 15px rgba(76, 154, 255, 0.4);
+  }
+}
