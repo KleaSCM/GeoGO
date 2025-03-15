@@ -15,6 +15,9 @@ func main() {
 	r.GET("/meteorites", api.GetAllMeteorites)
 	r.GET("/meteorites/largest", api.GetLargestMeteorites)
 	r.GET("/meteorites/nearby", api.GetNearbyMeteorites)
+
+	r.GET("/meteorites/location", api.GetMeteoriteLocation)
+
 	log.Println("🚀 Server running on http://localhost:8080")
 	r.Run(":8080")
 }
