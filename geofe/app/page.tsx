@@ -37,14 +37,14 @@ export default function HomePage() {
       const data = await response.json();
       console.log("✅ API Response:", data);
 
-      // Ensure the API returns an array
+      // 🚨 response is rray
       if (!Array.isArray(data)) {
         throw new Error(
-          `Unexpected API response format: Expected an array, received ${typeof data}`
+          `Unexpected API response format: Expected an array, got ${typeof data}`
         );
       }
 
-      // Ensure objects contain valid lat/lon
+      // 🚨Validate🚨lat/lon🚨for🚨each🚨result🚨
       data.forEach((rock, index) => {
         if (
           typeof rock.lat !== "number" ||

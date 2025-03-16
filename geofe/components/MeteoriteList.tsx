@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import Geocode from "./Geocode";
 import RockImage from "./RockImage";
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import styles from "./MeteoriteList.module.scss";
 
 // Lazy load Leaflet map (disable SSR)
@@ -15,7 +15,7 @@ interface Meteorite {
   mass: number;
   year: number;
   lat?: number; 
-  lon?: number;
+  lon?: number; 
 }
 
 interface MeteoriteListProps {
@@ -27,10 +27,17 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
     return <p className="text-gray-400 text-center mt-6">No meteorites found.</p>;
   }
 
-  // Get valid coordinates for the map
+ 
+  console.log("🔹 Meteorites from API:", JSON.stringify(results, null, 2));
+
+
   const mappedLocations = useMemo(() => {
     return results
-      .filter((m) => typeof m.lat === "number" && typeof m.lon === "number")
+      .filter((m) => {
+        const valid = typeof m.lat === "number" && typeof m.lon === "number" && !isNaN(m.lat) && !isNaN(m.lon);
+        if (!valid) console.warn(`⚠️ Skipping invalid entry:`, m);
+        return valid;
+      })
       .map((m) => ({
         name: m.name,
         lat: m.lat!,
@@ -38,10 +45,7 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
       }));
   }, [results]);
 
-  //debugs bugs bugs bugs bugs 
-  useEffect(() => {
-    console.log("🗺️ Mapped Meteorites for Map:", mappedLocations);
-  }, [mappedLocations]);
+  console.log("🗺️ Map Pins Data:", JSON.stringify(mappedLocations, null, 2));
 
   return (
     <div>
@@ -49,16 +53,14 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
         🗺️ Found {results.length} Meteorites
       </h2>
 
-      
-      {mappedLocations.length > 0 ? (
+    
+      {mappedLocations.length > 0 && (
         <div className="mt-4">
           <Map meteorites={mappedLocations} />
         </div>
-      ) : (
-        <p className="text-gray-400 text-center mt-6">No valid meteorite locations found.</p>
       )}
 
-      
+  
       <div className={styles.gridContainer}>
         {results.map((rock) => (
           <div key={rock.id || Math.random()} className={styles.meteoriteCard}>
@@ -70,12 +72,17 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
             <p className="text-gray-300">Mass: {rock.mass ? `${rock.mass}g` : "Unknown"}</p>
             <p className="text-gray-300">Year: {rock.year || "Unknown"}</p>
 
-            
+         
             <p className="text-gray-300">
-              📍 Coordinates: {rock.lat && rock.lon ? `${rock.lat}, ${rock.lon}` : "Unknown"}
-            </p>
-            <p className="text-gray-300">
-              🌍 Location: {rock.lat && rock.lon ? <Geocode lat={rock.lat} lon={rock.lon} /> : "Unknown"}
+              📍 Location:{" "}
+              {rock.lat !== undefined && rock.lon !== undefined ? (
+                <>
+                  {rock.lat.toFixed(2)}, {rock.lon.toFixed(2)}{" "}
+                  <Geocode lat={rock.lat} lon={rock.lon} />
+                </>
+              ) : (
+                "Unknown"
+              )}
             </p>
           </div>
         ))}
