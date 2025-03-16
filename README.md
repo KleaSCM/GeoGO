@@ -4,14 +4,16 @@
 GeoGO is a geospatial system that allows users to query meteorite impact locations worldwide. It provides a RESTful interface for retrieving meteorite data, searching for nearby impacts, and analyzing their distribution based on real-world scientific datasets. It also includes a **Next.js** frontend that displays these meteorites on an interactive map, showcasing the power of Go + geospatial technologies.
 
 **Key Features:**
-- RESTful API for meteorite impact data  
-- Find Nearby Meteorites using precise geospatial queries  
-- Real-World Dataset (47,000+ meteorite landings)  
-- Optimized with **PostgreSQL + PostGIS** for geospatial indexing  
-- **Concurrency** in Go (goroutines + channels) for parallel queries  
-- **Redis caching** for reverse geocoding and performance boosts  
-- Automated Data Ingestion with Python (optional ETL)  
-- A **Next.js** frontend that displays meteorite cards and an interactive Leaflet map
+- Geospatial Meteorite Search – Query meteorite impact data by year, mass, location, or proximity
+- Interactive Next.js Frontend – Displays results on searchable meteorite cards + an interactive map
+- Real-World Dataset – Over 47,000+ recorded meteorite landings
+- Find Nearby Meteorites – Uses PostGIS to compute distance-based queries
+- Reverse Geocoding – Convert lat/lon → location names for better readability
+- Optimized Geospatial Performance – Powered by PostgreSQL + PostGIS for fast spatial indexing
+- High-Performance Go Backend – Concurrency (goroutines + channels) for parallel queries
+- Caching with Redis – Speeds up location-based lookups and geocoding responses
+- Automated Data Ingestion (ETL) – Optional Python-based automation for bulk data updates
+- Leaflet.js Map – Visualize meteorites dynamically with real-world coordinates
 
 ---
 
