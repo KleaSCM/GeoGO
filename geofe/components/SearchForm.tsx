@@ -22,10 +22,9 @@ export default function SearchForm({ onSearch, loading }: SearchProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting query:", query);  
+    console.log("Submitting query:", query);
     onSearch(query);
-};
-
+  };
 
   return (
     <div className={styles["search-container"]}>
