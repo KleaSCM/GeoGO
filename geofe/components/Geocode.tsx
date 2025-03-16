@@ -44,5 +44,14 @@ export default function Geocode({ lat, lon }: GeocodeProps) {
     fetchLocation();
   }, [lat, lon]);
 
-  return <span>{location || "Fetching..."}</span>;
+  return (
+    <div>
+      <p className="text-gray-300">
+        📍 <strong>{location || "Fetching..."}</strong>
+      </p>
+      <p className="text-gray-300">
+        🌍 Coordinates: {lat.toFixed(4)}, {lon.toFixed(4)}
+      </p>
+    </div>
+  );
 }

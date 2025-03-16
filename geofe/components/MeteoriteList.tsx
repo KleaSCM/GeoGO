@@ -27,7 +27,7 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
     return <p className="text-gray-400 text-center mt-6">No results found.</p>;
   }
 
-  // Prepare locations for the map
+  
   const mappedLocations = useMemo(() => {
     return results
       .filter((m) => m.lat !== 0 && m.lon !== 0)
@@ -44,12 +44,12 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
         🗺️ Found {results.length} Meteorites
       </h2>
 
-      {/* MAP ABOVE THE CARDS */}
+     
       <div className="mt-4">
         <Map meteorites={mappedLocations} />
       </div>
 
-      {/* GRID OF CARDS BELOW */}
+     
       <div className={styles.gridContainer}>
         {results.map((rock) => (
           <div key={rock.id} className={styles.meteoriteCard}>
@@ -60,14 +60,16 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
             <p className="text-gray-300">Class: {rock.recclass}</p>
             <p className="text-gray-300">Mass: {rock.mass}g</p>
             <p className="text-gray-300">Year: {rock.year}</p>
-            <p className="text-gray-300">
-              📍 Location:{" "}
-              {rock.lat && rock.lon ? (
-                <Geocode lat={rock.lat} lon={rock.lon} />
-              ) : (
-                "Unknown"
-              )}
-            </p>
+
+            
+            {rock.lat && rock.lon ? (
+              <>
+                <p className="text-gray-300">🌍 Coordinates: {rock.lat.toFixed(4)}, {rock.lon.toFixed(4)}</p>
+                <p className="text-gray-300">📍 Location: <Geocode lat={rock.lat} lon={rock.lon} /></p>
+              </>
+            ) : (
+              <p className="text-gray-300">📍 Location: Unknown</p>
+            )}
           </div>
         ))}
       </div>
