@@ -27,7 +27,7 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
     return <p className="text-gray-400 text-center mt-6">No results found.</p>;
   }
 
-  // Prepare locations for the map
+  // Prep locations for map
   const mappedLocations = useMemo(() => {
     return results
       .filter((m) => typeof m.lat === "number" && typeof m.lon === "number")
@@ -43,13 +43,9 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
       <h2 className="text-2xl font-bold text-blue-400 mb-4">
         🗺️ Found {results.length} Meteorites
       </h2>
-
-      {/* MAP ABOVE THE CARDS */}
       <div className="mt-4">
         <Map meteorites={mappedLocations} />
       </div>
-
-      {/* GRID OF CARDS BELOW */}
       <div className={styles.gridContainer}>
         {results.map((rock) => {
           const hasValidCoords =
