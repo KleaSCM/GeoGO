@@ -12,16 +12,20 @@ export default function HomePage() {
     try {
       const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
       const url = new URL(`${BASE_URL}/meteorites`);
+      
       Object.entries(query).forEach(([key, value]) => {
-        if (value !== "") url.searchParams.append(key, value);
+        if (value.trim() !== "") url.searchParams.append(key, value);
       });
+
       console.log("Fetching from:", url.toString());
       const response = await fetch(url.toString());
+
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
       const data = await response.json();
       setResults(data);
     } catch (error) {
-      console.error("Error fetching meteorites:", error);
+      console.error("❌ Error fetching meteorites:", error);
     } finally {
       setLoading(false);
     }
