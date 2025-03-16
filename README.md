@@ -1,68 +1,75 @@
 # GeoGO: Meteorite Impact Data API 🌍☄️
 
 ## Overview
+GeoGO is a geospatial system that allows users to query meteorite impact locations worldwide. It provides a RESTful interface for retrieving meteorite data, searching for nearby impacts, and analyzing their distribution based on real-world scientific datasets. It also includes a **Next.js** frontend that displays these meteorites on an interactive map, showcasing the power of Go + geospatial technologies.
 
-GeoGO is a geospatial API that allows users to query meteorite impact locations worldwide. It provides a RESTful interface for retrieving meteorite landings, searching for nearby impacts, and analyzing their distribution based on real-world scientific data.
+**Key Features:**
+- RESTful API for meteorite impact data  
+- Find Nearby Meteorites using precise geospatial queries  
+- Real-World Dataset (47,000+ meteorite landings)  
+- Optimized with **PostgreSQL + PostGIS** for geospatial indexing  
+- **Concurrency** in Go (goroutines + channels) for parallel queries  
+- **Redis caching** for reverse geocoding and performance boosts  
+- Automated Data Ingestion with Python (optional ETL)  
+- A **Next.js** frontend that displays meteorite cards and an interactive Leaflet map
 
-This project integrates
-    - Public Meteorite Data (NASA/Global Databases)
-    - SQLite for fast lookups
-    - Go (Gin framework) for API services
-    - Haversine Formula for distance-based queries
-    - Python for ETL (Extract, Transform, Load)
-    
-Features
-
-- RESTful API for meteorite impact data
-- Find Nearby Meteorites using precise geospatial calculations
-- Real-World Dataset (over 47,000+ meteorite landings)
-- Optimized with SQLite for fast queries
-- Automated Data Ingestion with Python
-- Custom Database Schema for structured analysis
+---
 
 ## 🛠️ Tech Stack
 
-| **Technology**          | **Purpose**                               |
-|------------------------|-------------------------------------------|
-| **Go (Gin Framework)** | High-performance API backend             |
-| **SQLite**            | Lightweight relational database           |
-| **Python (Pandas)**   | Data processing & ingestion               |
-| **Haversine Formula** | Geospatial distance calculations         |
-| **cURL/Postman**      | API Testing                               |
+| **Technology**             | **Purpose**                                   |
+|----------------------------|-----------------------------------------------|
+| **Go (Gin Framework)**     | High-performance backend & concurrency        |
+| **PostgreSQL + PostGIS**   | Geospatial database & indexing                |
+| **Redis**                  | Caching for reverse geocoding & queries       |
+| **Python (Pandas)**        | Data processing & ingestion                   |
+| **Leaflet + Next.js**      | Interactive map & UI for meteorite data       |
+| **Docker**                 | Containerization for production deployments   |
+
+---
+
+## Installation & Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/KleaSCM/GeoGO.git
+   cd GeoGO
 
 
-## Setup & Installation
-``git clone https://github.com/yourusername/GeoGO.git
-cd GeoGO``
+
+
+``
 ###  Install Dependencies:
 Go dependencies
 ``go mod tidy``
-Python dependencies (optional, for data processing)
+
+Make sure you have PostgreSQL with PostGIS installed.
+Update DSN (host/user/password/dbname) in db.InitDB() (e.g., dsn := "host=localhost port=5432 user=postgres password=secret dbname=GeoGO sslmode=disable")
+
+
+Python dependencies (optional, for data processing) 
 ``pip install pandas``
 ### Prepare the Database
+
+Optional: Run Python ETL scripts if needed (e.g., python utils/ParseData.py).
 ``python utils/ParseData.py``
+
 ### Seed the Database
 ``go run cmd/seed/main.go``
 ### Run the API Server
 ``go run main.go``
 
+The server should now be running on http://localhost:8080.
+
 ### 📡API Endpoints📡
 
-## 🌍 Get All Meteorite Landings
-``GET /locations``
+| **Endpoint**               | **Description**                                       |
+|----------------------------|-------------------------------------------------------|
+| `GET /meteorites`          | Fetch all meteorites with filters (year, mass, etc.)  |
+| `GET /meteorites/largest`  | Fetch the top 10 largest meteorites                   |
+| `GET /meteorites/nearby`   | Find meteorites near a given lat/lon + radius         |
+| `GET /meteorites/location` | Reverse geocode a given lat/lon                       |
 
-###  Database Schema
-``CREATE TABLE locations (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  nametype TEXT,
-  recclass TEXT,
-  mass REAL,
-  fall TEXT,
-  year INTEGER,
-  latitude REAL NOT NULL,
-  longitude REAL NOT NULL
-);``
 
 id – Unique meteorite ID
 name – Official meteorite name
