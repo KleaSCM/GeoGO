@@ -10,12 +10,15 @@ export default function HomePage() {
 
   const searchMeteorites = async (query: Record<string, string | number>) => {
     setLoading(true);
-    setError(null); 
+    setError(null);
+    setResults([]); 
 
     try {
-      const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:8080";
+      const BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
+        "http://localhost:8080";
       const url = new URL(`${BASE_URL}/meteorites`);
-      
+
       Object.entries(query).forEach(([key, value]) => {
         if (value !== "" && value !== undefined) {
           url.searchParams.append(key, String(value).trim());
@@ -32,10 +35,33 @@ export default function HomePage() {
       }
 
       const data = await response.json();
+      console.log("✅ API Response:", data);
+
+      // Ensure the API returns an array
+      if (!Array.isArray(data)) {
+        throw new Error(
+          `Unexpected API response format: Expected an array, received ${typeof data}`
+        );
+      }
+
+      // Ensure objects contain valid lat/lon
+      data.forEach((rock, index) => {
+        if (
+          typeof rock.lat !== "number" ||
+          typeof rock.lon !== "number" ||
+          isNaN(rock.lat) ||
+          isNaN(rock.lon)
+        ) {
+          console.warn(`⚠️ Warning: Invalid lat/lon for item #${index}`, rock);
+        }
+      });
+
       setResults(data);
     } catch (error) {
       console.error("❌ Error fetching meteorites:", error);
-      setError("Failed to fetch meteorite data. Please try again.");
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred."
+      );
     } finally {
       setLoading(false);
     }
