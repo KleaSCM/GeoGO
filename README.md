@@ -34,10 +34,6 @@ GeoGO is a geospatial system that allows users to query meteorite impact locatio
    ```bash
    git clone https://github.com/KleaSCM/GeoGO.git
    cd GeoGO
-
-
-
-
 ``
 ###  Install Dependencies:
 Go dependencies
@@ -80,13 +76,13 @@ fall – Whether it was found or fell
 year – Year of impact/discovery
 latitude & longitude – Impact coordinates
 
+PostGIS functions like ST_X(geom) AS lon and ST_Y(geom) AS lat are used to retrieve numeric coordinates for the frontend.
 
 ### 🛠️ Future Improvements
 
-🔹 Caching for performance optimization
-🔹 Spatial Indexing with PostGIS or RTree
-🔹 Data Visualization (Mapping impacts on a frontend)
-🔹 Machine Learning to predict impact zones
+Enhanced Caching for common queries (Redis expansions)
+Further concurrency optimization & worker pools in Go
+Frontend: Additional map layers, advanced filters, and UI enhancements
 
 
 ### 💡 Contributing
