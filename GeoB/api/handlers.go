@@ -4,6 +4,7 @@ import (
 	"GeoGO/api/geocoding"
 	"GeoGO/db"
 	"GeoGO/models"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,16 +12,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// reverse Geocode (Coords → Place)
+// Reverse Geocode (Coords → Place)
 func GetMeteoriteLocation(c *gin.Context) {
 	geocoding.GetMeteoriteLocation(c)
 }
 
-// forward Geocode (Place → Coords)
+// Forward Geocode (Place → Coords)
 func GetCoordinatesFromLocation(c *gin.Context) {
 	geocoding.GetCoordinatesFromLocation(c)
 }
 
+// meteorites with optional filters
 func GetAllMeteorites(c *gin.Context) {
 	limit := 50
 	offset := 0
@@ -52,7 +54,8 @@ func GetAllMeteorites(c *gin.Context) {
 		radius, _ = strconv.ParseFloat(v, 64)
 	}
 
-	// convert place name to coordinates
+	// Convert location to coords
+	var locationFilter string
 	if location != "" {
 		coords, err := geocoding.ForwardGeocode(location)
 		if err != nil {
@@ -61,28 +64,34 @@ func GetAllMeteorites(c *gin.Context) {
 		}
 		lat, lon = coords.Lat, coords.Lon
 		log.Printf("🌍 Location search: '%s' -> [lat: %.6f, lon: %.6f]", location, lat, lon)
+		locationFilter = " AND ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($5, $6), 4326)::geography, $7)"
 	}
 
 	log.Printf("📡 Fetching meteorites: limit=%d, offset=%d, year=[%d-%d], mass=[%.2f-%.2f], location=%s",
 		limit, offset, yearStart, yearEnd, massMin, massMax, location)
 
-	// Base Query
+	// Construct SQL Query Dynamically
 	query := `
 		SELECT id, name, recclass, mass, year, ST_X(geom) AS lon, ST_Y(geom) AS lat
 		FROM locations
 		WHERE year BETWEEN $1 AND $2
 		AND mass BETWEEN $3 AND $4
 	`
+	query += locationFilter //append location filter
+	query += " ORDER BY year DESC LIMIT $%d OFFSET $%d"
 
-	var args []interface{}
-	args = append(args, yearStart, yearEnd, massMin, massMax)
-
+	// Adjust SQL parameter positions dynamically
 	if location != "" {
-		query += ` AND ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($5, $6), 4326)::geography, $7)`
-		args = append(args, lon, lat, radius)
+		query = formatQuery(query, 8, 9) // location adds $5, $6, $7
+	} else {
+		query = formatQuery(query, 5, 6) // normal $5, $6 for limit/offset
 	}
 
-	query += " ORDER BY year DESC LIMIT $8 OFFSET $9"
+	// Prep query arguments dynamically
+	args := []interface{}{yearStart, yearEnd, massMin, massMax}
+	if location != "" {
+		args = append(args, lon, lat, radius)
+	}
 	args = append(args, limit, offset)
 
 	// Execute query
@@ -97,6 +106,7 @@ func GetAllMeteorites(c *gin.Context) {
 	c.JSON(http.StatusOK, meteorites)
 }
 
+// execute query and return meteorite data
 func FetchMeteoritesRaw(c *gin.Context, query string, args ...interface{}) ([]models.Meteorite, error) {
 	var meteorites []models.Meteorite
 	err := db.DB.Select(&meteorites, query, args...)
@@ -106,6 +116,7 @@ func FetchMeteoritesRaw(c *gin.Context, query string, args ...interface{}) ([]mo
 	return meteorites, nil
 }
 
+// Return 10 largest meteorites
 func GetLargestMeteorites(c *gin.Context) {
 	log.Println("📡 Fetching the 10 largest meteorites...")
 	query := `
@@ -125,6 +136,7 @@ func GetLargestMeteorites(c *gin.Context) {
 	c.JSON(http.StatusOK, meteorites)
 }
 
+// meteorites near a given location
 func GetNearbyMeteorites(c *gin.Context) {
 	lat, err1 := strconv.ParseFloat(c.Query("lat"), 64)
 	lon, err2 := strconv.ParseFloat(c.Query("lon"), 64)
@@ -161,4 +173,9 @@ func GetNearbyMeteorites(c *gin.Context) {
 
 	log.Printf("✅ Found %d meteorites near given location", len(meteorites))
 	c.JSON(http.StatusOK, meteorites)
+}
+
+// update SQL placeholders dynamically
+func formatQuery(query string, limitPos, offsetPos int) string {
+	return fmt.Sprintf(query, limitPos, offsetPos)
 }
