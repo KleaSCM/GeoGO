@@ -14,6 +14,7 @@ export default function SearchForm({ onSearch, loading }: SearchProps) {
     recclass: "",
     mass_min: "",
     mass_max: "",
+    location: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
