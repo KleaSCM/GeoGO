@@ -24,7 +24,6 @@ interface MeteoriteListProps {
 export default function MeteoriteList({ results }: MeteoriteListProps) {
   if (!results.length) return <p className="text-gray-400 text-center mt-6">No results found.</p>;
 
-  // Extract valid meteorite locations for mapping
   const mappedLocations = useMemo(() => {
     return results
       .map((meteorite) => {
@@ -48,18 +47,17 @@ export default function MeteoriteList({ results }: MeteoriteListProps) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-blue-400 mb-4">🗺️ Found {results.length} Meteorites</h2>
+      <h2 className="text-2xl font-bold text-blue-400 mb-4">
+        🗺️ Found {results.length} Meteorites
+      </h2>
 
-      {/* MAP COMPONENT */}
       <div className="mt-4">
         <Map meteorites={mappedLocations as { name: string; lat: number; lon: number }[]} />
       </div>
 
-      {/* ROCK CARDS GRID */}
       <div className={styles.gridContainer}>
         {results.map((rock) => {
-          let lat = 0,
-            lon = 0;
+          let lat = 0, lon = 0;
           try {
             const coords = rock.location.match(/POINT\(([-\d.]+) ([-\d.]+)\)/);
             if (coords) {
