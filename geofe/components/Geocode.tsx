@@ -8,11 +8,12 @@ interface GeocodeProps {
 
 export default function Geocode({ lat, lon }: GeocodeProps) {
   const [location, setLocation] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchLocation() {
       if (!lat || !lon) {
-        setLocation("Invalid Coordinates");
+        setLocation("Unknown Location");
         return;
       }
 
@@ -21,6 +22,7 @@ export default function Geocode({ lat, lon }: GeocodeProps) {
 
       if (cachedLocation) {
         setLocation(cachedLocation);
+        setLoading(false);
         return;
       }
 
@@ -28,30 +30,25 @@ export default function Geocode({ lat, lon }: GeocodeProps) {
         const response = await fetch(
           `http://localhost:8080/meteorites/location?lat=${lat}&lon=${lon}`
         );
-        if (!response.ok) throw new Error("Failed to fetch location");
+
+        if (!response.ok) throw new Error(`Failed to fetch location`);
 
         const data = await response.json();
-        if (!data.location) throw new Error("Empty response from server");
+        if (!data || !data.location) throw new Error("Empty response from server");
 
         setLocation(data.location);
         sessionStorage.setItem(cacheKey, data.location);
       } catch (error) {
         console.error("❌ Geocoding failed:", error);
         setLocation("Unknown Location");
+      } finally {
+        setLoading(false);
       }
     }
 
     fetchLocation();
   }, [lat, lon]);
 
-  return (
-    <div>
-      <p className="text-gray-300">
-        📍 <strong>{location || "Fetching..."}</strong>
-      </p>
-      <p className="text-gray-300">
-        🌍 Coordinates: {lat.toFixed(4)}, {lon.toFixed(4)}
-      </p>
-    </div>
-  );
+  if (loading) return <span>Fetching...</span>;
+  return <span>{location || "Unknown Location"}</span>;
 }
