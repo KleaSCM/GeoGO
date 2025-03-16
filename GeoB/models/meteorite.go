@@ -6,7 +6,8 @@ type Meteorite struct {
 	Recclass string  `db:"recclass" json:"recclass"`
 	Mass     float64 `db:"mass" json:"mass"`
 	Year     int     `db:"year" json:"year"`
-	Location string  `db:"location" json:"location"`
+	Lat      float64 `db:"lat" json:"lat"`
+	Lon      float64 `db:"lon" json:"lon"`
 	Nametype string  `db:"nametype" json:"nametype"`
 	Fall     string  `db:"fall" json:"fall"`
 }

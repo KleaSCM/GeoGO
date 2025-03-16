@@ -2,6 +2,8 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L, { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+// Override default icon options
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -11,17 +13,32 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+interface MapData {
+  name: string;
+  lat: number;
+  lon: number;
+}
+
 interface MapProps {
-  meteorites: { name: string; lat: number; lon: number }[];
+  meteorites: MapData[];
 }
 
 export default function Map({ meteorites }: MapProps) {
-  const defaultCenter: LatLngExpression = [0, 0];
+  // Filter out any invalid coords
+  const validRocks = meteorites.filter(
+    (rock) => typeof rock.lat === "number" && typeof rock.lon === "number"
+  );
+
+  // Center on the first valid rock or [0,0] if none
+  const center: LatLngExpression =
+    validRocks.length > 0
+      ? ([validRocks[0].lat, validRocks[0].lon] as [number, number])
+      : ([0, 0] as [number, number]);
 
   return (
     <div className="w-full h-[500px] mb-8">
       <MapContainer
-        center={defaultCenter as [number, number]}
+        center={center}
         zoom={2}
         className="w-full h-full rounded-lg"
       >
@@ -29,7 +46,7 @@ export default function Map({ meteorites }: MapProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; OpenStreetMap contributors"
         />
-        {meteorites.map((rock, index) => {
+        {validRocks.map((rock, index) => {
           const position: [number, number] = [rock.lat, rock.lon];
           return (
             <Marker key={index} position={position}>
@@ -45,3 +62,5 @@ export default function Map({ meteorites }: MapProps) {
     </div>
   );
 }
+
+
