@@ -1,3 +1,36 @@
+// Geocoding.go
+//
+// Geocoding service implementation for GeoGO
+// Provides forward and reverse geocoding capabilities using Nominatim.
+// Compliance Level: High
+//
+// - Implements Redis caching for geocoding results
+// - Handles external API rate limiting
+// - Manages request timeouts
+// - Provides fallback mechanisms
+//
+// TODO: Implement rotating User-Agent headers for Nominatim API
+// TODO: Add exponential backoff for rate-limited requests
+// TODO: Consider implementing alternative geocoding providers
+// TODO: Add geocoding result validation
+// TODO: Implement bulk geocoding capabilities
+//
+// NOTE: Nominatim API Usage:
+// - Free tier has strict rate limits (1 request per second)
+// - Requires proper attribution in production
+// - May return different results based on zoom level
+// - Consider implementing request queuing for high-volume scenarios
+//
+// Redis Cache Policy:
+// TTL: 24 hours
+// Key Structure:
+// - Reverse geocoding: geo:{lat},{lon}
+// - Forward geocoding: geo:{location}
+// Reasoning:
+// - 24-hour TTL balances API load with data freshness
+// - Location names change less frequently than coordinates
+// - Consider implementing cache warming for common locations
+
 package geocoding
 
 import (
@@ -17,7 +50,14 @@ import (
 
 // Redis client configuration for caching geocoding results.
 // Uses a local Redis instance with default settings for development.
-// In production, consider using environment variables for configuration.
+//
+// TODO: Move Redis configuration to environment variables
+// TODO: Add connection retry logic
+// TODO: Implement connection pooling
+// TODO: Add Redis health checks
+//
+// NOTE: Current configuration is for development only
+// NOTE: Consider using Redis Sentinel for high availability
 var redisClient = redis.NewClient(&redis.Options{
 	Addr:     "localhost:6379",
 	Password: "",
@@ -48,6 +88,14 @@ type ForwardGeocodeResponse struct {
 //   - 200 OK: Location information in JSON format
 //   - 400 Bad Request: Invalid or missing coordinates
 //   - 500 Internal Server Error: Geocoding service failure
+//
+// TODO: Add support for different coordinate formats
+// TODO: Implement coordinate normalization
+// TODO: Add support for batch geocoding
+// TODO: Consider adding response compression
+//
+// NOTE: Current implementation uses simple coordinate validation
+// NOTE: Consider adding support for different coordinate systems
 func GetMeteoriteLocation(c *gin.Context) {
 	latStr := c.Query("lat")
 	lonStr := c.Query("lon")
@@ -92,6 +140,17 @@ func GetMeteoriteLocation(c *gin.Context) {
 //   - Uses Redis for caching with a 24-hour TTL
 //   - Implements a 10-second timeout for API requests
 //   - Provides fallback to coordinate string on API failure
+//
+// TODO: Implement rotating User-Agent headers
+// TODO: Add exponential backoff for rate-limited requests
+// TODO: Consider implementing alternative geocoding providers
+// TODO: Add geocoding result validation
+//
+// NOTE: Nominatim API Usage:
+// - Free tier has strict rate limits (1 request per second)
+// - Requires proper attribution in production
+// - May return different results based on zoom level
+// - Consider implementing request queuing for high-volume scenarios
 func ReverseGeocode(lat, lon float64) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -141,6 +200,14 @@ func ReverseGeocode(lat, lon float64) (string, error) {
 //   - 200 OK: Coordinates in JSON format
 //   - 400 Bad Request: Missing location parameter
 //   - 500 Internal Server Error: Geocoding service failure
+//
+// TODO: Add support for fuzzy location matching
+// TODO: Implement location name normalization
+// TODO: Add support for batch geocoding
+// TODO: Consider adding response compression
+//
+// NOTE: Current implementation uses exact matching
+// NOTE: Consider implementing location name disambiguation
 func GetCoordinatesFromLocation(c *gin.Context) {
 	location := c.Query("location")
 	if location == "" {
@@ -173,6 +240,14 @@ func GetCoordinatesFromLocation(c *gin.Context) {
 //   - Uses Redis for caching with a 24-hour TTL
 //   - Implements a 10-second timeout for API requests
 //   - Handles multiple results by returning the first match
+//
+// TODO: Add support for different location formats
+// TODO: Implement location name normalization
+// TODO: Add support for fuzzy matching
+// TODO: Consider implementing result ranking
+//
+// NOTE: Current implementation returns first match
+// NOTE: Consider implementing result scoring and ranking
 func ForwardGeocode(location string) (*ForwardGeocodeResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

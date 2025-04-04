@@ -1,3 +1,28 @@
+// search.go
+//
+// Search functionality implementation for GeoGO
+// Provides query building and parallel execution capabilities.
+// Compliance Level: High
+//
+// - Implements parameterized query construction
+// - Handles concurrent query execution
+// - Manages resource synchronization
+// - Implements proper error handling
+//
+// TODO: Add query plan analysis for performance optimization
+// TODO: Implement query result caching for frequently accessed data
+// TODO: Add support for more complex spatial queries
+// TODO: Consider implementing query timeout mechanism
+// TODO: Add support for query result streaming
+//
+// NOTE: Parallel execution may need tuning based on database connection pool size
+// NOTE: Consider implementing query result batching for large datasets
+//
+// Cache Policy:
+// - No direct caching at search level
+// - Consider implementing query result caching for common searches
+// - Cache invalidation strategy needed if implemented
+
 package api
 
 import (
@@ -28,6 +53,14 @@ import (
 //
 //	Input: year_start=1900, year_end=2000, mass_min=1000, location="40.7128,-74.0060"
 //	Output: "WHERE year BETWEEN $1 AND $2 AND mass BETWEEN $3 AND $4 AND ST_DWithin(...)", [1900, 2000, 1000, ...]
+//
+// TODO: Add support for more complex filter combinations
+// TODO: Implement filter validation against schema
+// TODO: Add support for custom filter operators
+// TODO: Consider implementing filter expression parsing
+//
+// NOTE: Current implementation uses simple string concatenation
+// NOTE: Consider using a query builder library for more complex queries
 func buildQueryFilters(c *gin.Context) (string, []interface{}, error) {
 	var filters []string
 	var args []interface{}
@@ -100,6 +133,14 @@ func buildQueryFilters(c *gin.Context) (string, []interface{}, error) {
 //
 // Note: The function uses parameterized queries to prevent SQL injection and
 // implements proper error handling for database operations.
+//
+// TODO: Add query plan analysis for performance optimization
+// TODO: Implement query timeout mechanism
+// TODO: Add support for query result streaming
+// TODO: Consider implementing query result caching
+//
+// NOTE: Current implementation may need optimization for large result sets
+// NOTE: Consider implementing query result batching
 func FetchMeteorites(c *gin.Context, query string, limit, offset int) ([]models.Meteorite, error) {
 	whereClause, args, err := buildQueryFilters(c)
 	if err != nil {
@@ -137,6 +178,15 @@ func FetchMeteorites(c *gin.Context, query string, limit, offset int) ([]models.
 //   - Implements a buffered channel for result collection
 //   - Handles error propagation from individual queries
 //   - Ensures proper cleanup of resources
+//
+// TODO: Add support for dynamic worker pool sizing
+// TODO: Implement graceful shutdown of workers
+// TODO: Add support for query prioritization
+// TODO: Consider implementing result streaming
+//
+// NOTE: Current implementation uses fixed-size worker pool
+// NOTE: Consider implementing work stealing for better load balancing
+// NOTE: May need tuning based on database connection pool size
 func FetchParallel(c *gin.Context, queries []string) [][]models.Meteorite {
 	var wg sync.WaitGroup
 	results := make([][]models.Meteorite, len(queries))
