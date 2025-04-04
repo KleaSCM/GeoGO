@@ -12,6 +12,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// buildQueryFilters constructs a SQL WHERE clause and corresponding arguments based on query parameters.
+// It handles multiple filter types including year range, meteorite class, mass range, and location-based filtering.
+// The function implements parameterized queries to prevent SQL injection and validates all input parameters.
+//
+// Parameters:
+//   - c: Gin context containing query parameters
+//
+// Returns:
+//   - string: The constructed WHERE clause
+//   - []interface{}: Arguments for the parameterized query
+//   - error: Any validation or parsing errors encountered
+//
+// Example:
+//
+//	Input: year_start=1900, year_end=2000, mass_min=1000, location="40.7128,-74.0060"
+//	Output: "WHERE year BETWEEN $1 AND $2 AND mass BETWEEN $3 AND $4 AND ST_DWithin(...)", [1900, 2000, 1000, ...]
 func buildQueryFilters(c *gin.Context) (string, []interface{}, error) {
 	var filters []string
 	var args []interface{}
@@ -68,6 +84,22 @@ func buildQueryFilters(c *gin.Context) (string, []interface{}, error) {
 	return whereClause, args, nil
 }
 
+// FetchMeteorites executes a parameterized query to retrieve meteorite data based on provided filters.
+// It combines the base query with dynamically constructed filters and handles pagination.
+// The function ensures proper error handling and logging of query execution.
+//
+// Parameters:
+//   - c: Gin context for request handling
+//   - query: Base SQL query string
+//   - limit: Maximum number of results to return
+//   - offset: Number of results to skip (for pagination)
+//
+// Returns:
+//   - []models.Meteorite: Slice of meteorite data matching the query
+//   - error: Any database or query execution errors
+//
+// Note: The function uses parameterized queries to prevent SQL injection and
+// implements proper error handling for database operations.
 func FetchMeteorites(c *gin.Context, query string, limit, offset int) ([]models.Meteorite, error) {
 	whereClause, args, err := buildQueryFilters(c)
 	if err != nil {
@@ -89,6 +121,22 @@ func FetchMeteorites(c *gin.Context, query string, limit, offset int) ([]models.
 	return meteorites, nil
 }
 
+// FetchParallel executes multiple queries concurrently and aggregates their results.
+// It uses a worker pool pattern with goroutines and channels for efficient parallel execution.
+// The function ensures proper synchronization and error handling across all concurrent operations.
+//
+// Parameters:
+//   - c: Gin context for request handling
+//   - queries: Slice of query strings to execute in parallel
+//
+// Returns:
+//   - [][]models.Meteorite: Slice of meteorite data slices, one for each query
+//
+// Implementation Details:
+//   - Uses sync.WaitGroup for goroutine synchronization
+//   - Implements a buffered channel for result collection
+//   - Handles error propagation from individual queries
+//   - Ensures proper cleanup of resources
 func FetchParallel(c *gin.Context, queries []string) [][]models.Meteorite {
 	var wg sync.WaitGroup
 	results := make([][]models.Meteorite, len(queries))

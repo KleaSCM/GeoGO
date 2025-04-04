@@ -15,21 +15,39 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// Redis client configuration for caching geocoding results.
+// Uses a local Redis instance with default settings for development.
+// In production, consider using environment variables for configuration.
 var redisClient = redis.NewClient(&redis.Options{
 	Addr:     "localhost:6379",
 	Password: "",
 	DB:       0,
 })
 
+// ReverseGeocodeResponse represents the structure of the response from the Nominatim reverse geocoding API.
+// It contains the human-readable location name for given coordinates.
 type ReverseGeocodeResponse struct {
 	DisplayName string `json:"display_name"`
 }
+
+// ForwardGeocodeResponse represents the structure of the response from the Nominatim forward geocoding API.
+// It contains the coordinates (latitude and longitude) for a given location name.
 type ForwardGeocodeResponse struct {
 	Lat float64 `json:"lat,string"`
 	Lon float64 `json:"lon,string"`
 }
 
-// handle Reverse Geocoding (Coords → Place)
+// GetMeteoriteLocation handles HTTP requests for reverse geocoding.
+// It validates input coordinates and returns a human-readable location name.
+//
+// Query Parameters:
+//   - lat: Latitude coordinate
+//   - lon: Longitude coordinate
+//
+// Response:
+//   - 200 OK: Location information in JSON format
+//   - 400 Bad Request: Invalid or missing coordinates
+//   - 500 Internal Server Error: Geocoding service failure
 func GetMeteoriteLocation(c *gin.Context) {
 	latStr := c.Query("lat")
 	lonStr := c.Query("lon")
@@ -59,7 +77,21 @@ func GetMeteoriteLocation(c *gin.Context) {
 	})
 }
 
-// reverse Geocode (Coords → Place Name)
+// ReverseGeocode converts coordinates to a human-readable location name using the Nominatim API.
+// It implements caching using Redis to reduce API calls and improve response times.
+//
+// Parameters:
+//   - lat: Latitude coordinate
+//   - lon: Longitude coordinate
+//
+// Returns:
+//   - string: Human-readable location name
+//   - error: Any geocoding or caching errors
+//
+// Implementation Details:
+//   - Uses Redis for caching with a 24-hour TTL
+//   - Implements a 10-second timeout for API requests
+//   - Provides fallback to coordinate string on API failure
 func ReverseGeocode(lat, lon float64) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -99,7 +131,16 @@ func ReverseGeocode(lat, lon float64) (string, error) {
 	return result.DisplayName, nil
 }
 
-// andle Forward Geocoding (Place → Coords)
+// GetCoordinatesFromLocation handles HTTP requests for forward geocoding.
+// It converts a location name to coordinates using the Nominatim API.
+//
+// Query Parameters:
+//   - location: Human-readable location name
+//
+// Response:
+//   - 200 OK: Coordinates in JSON format
+//   - 400 Bad Request: Missing location parameter
+//   - 500 Internal Server Error: Geocoding service failure
 func GetCoordinatesFromLocation(c *gin.Context) {
 	location := c.Query("location")
 	if location == "" {
@@ -118,7 +159,20 @@ func GetCoordinatesFromLocation(c *gin.Context) {
 	})
 }
 
-// Forward Geocode (Place Name → Coords)
+// ForwardGeocode converts a location name to coordinates using the Nominatim API.
+// It implements caching using Redis to reduce API calls and improve response times.
+//
+// Parameters:
+//   - location: Human-readable location name
+//
+// Returns:
+//   - *ForwardGeocodeResponse: Coordinates (latitude and longitude)
+//   - error: Any geocoding or caching errors
+//
+// Implementation Details:
+//   - Uses Redis for caching with a 24-hour TTL
+//   - Implements a 10-second timeout for API requests
+//   - Handles multiple results by returning the first match
 func ForwardGeocode(location string) (*ForwardGeocodeResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

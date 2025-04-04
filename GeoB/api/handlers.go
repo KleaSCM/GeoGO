@@ -12,17 +12,49 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Reverse Geocode (Coords → Place)
+// GetMeteoriteLocation handles reverse geocoding requests to convert coordinates to a human-readable location.
+// It validates input coordinates and delegates to the geocoding service for location lookup.
+//
+// Parameters:
+//   - c: Gin context containing query parameters (lat, lon)
+//
+// Response:
+//   - 200 OK: Location information in JSON format
+//   - 400 Bad Request: Invalid or missing coordinates
+//   - 500 Internal Server Error: Geocoding service failure
 func GetMeteoriteLocation(c *gin.Context) {
 	geocoding.GetMeteoriteLocation(c)
 }
 
-// Forward Geocode (Place → Coords)
+// GetCoordinatesFromLocation handles forward geocoding requests to convert location names to coordinates.
+// It validates the location input and uses the geocoding service to resolve coordinates.
+//
+// Parameters:
+//   - c: Gin context containing query parameter (location)
+//
+// Response:
+//   - 200 OK: Coordinates in JSON format
+//   - 400 Bad Request: Missing or invalid location
+//   - 500 Internal Server Error: Geocoding service failure
 func GetCoordinatesFromLocation(c *gin.Context) {
 	geocoding.GetCoordinatesFromLocation(c)
 }
 
-// meteorites with optional filters
+// GetAllMeteorites provides a flexible search endpoint for meteorite data with multiple filter options.
+// It supports filtering by year range, mass range, and location proximity, with pagination.
+// The function implements proper input validation and error handling for all parameters.
+//
+// Query Parameters:
+//   - year_start, year_end: Filter by impact year range
+//   - mass_min, mass_max: Filter by mass range in grams
+//   - location: Search by location name (converted to coordinates)
+//   - radius: Search radius in meters for location-based queries
+//   - limit, offset: Pagination parameters
+//
+// Response:
+//   - 200 OK: Array of meteorite data in JSON format
+//   - 400 Bad Request: Invalid query parameters
+//   - 500 Internal Server Error: Database or geocoding service failure
 func GetAllMeteorites(c *gin.Context) {
 	limit := 50
 	offset := 0
@@ -106,7 +138,17 @@ func GetAllMeteorites(c *gin.Context) {
 	c.JSON(http.StatusOK, meteorites)
 }
 
-// execute query and return meteorite data
+// FetchMeteoritesRaw executes a parameterized SQL query and returns the results as meteorite data.
+// It handles database operations and error propagation while ensuring proper resource management.
+//
+// Parameters:
+//   - c: Gin context for request handling
+//   - query: SQL query string with parameter placeholders
+//   - args: Arguments for the parameterized query
+//
+// Returns:
+//   - []models.Meteorite: Slice of meteorite data
+//   - error: Any database operation errors
 func FetchMeteoritesRaw(c *gin.Context, query string, args ...interface{}) ([]models.Meteorite, error) {
 	var meteorites []models.Meteorite
 	err := db.DB.Select(&meteorites, query, args...)
@@ -116,7 +158,12 @@ func FetchMeteoritesRaw(c *gin.Context, query string, args ...interface{}) ([]mo
 	return meteorites, nil
 }
 
-// Return 10 largest meteorites
+// GetLargestMeteorites retrieves the 10 largest meteorites by mass from the database.
+// The function implements a simple, optimized query for this specific use case.
+//
+// Response:
+//   - 200 OK: Array of the 10 largest meteorites in JSON format
+//   - 500 Internal Server Error: Database operation failure
 func GetLargestMeteorites(c *gin.Context) {
 	log.Println("📡 Fetching the 10 largest meteorites...")
 	query := `
@@ -136,7 +183,19 @@ func GetLargestMeteorites(c *gin.Context) {
 	c.JSON(http.StatusOK, meteorites)
 }
 
-// meteorites near a given location
+// GetNearbyMeteorites searches for meteorites within a specified radius of given coordinates.
+// It supports additional filters for year range and mass, with proper input validation.
+//
+// Query Parameters:
+//   - lat, lon: Center point coordinates
+//   - radius: Search radius in meters
+//   - year_start, year_end: Optional year range filter
+//   - mass_min, mass_max: Optional mass range filter
+//
+// Response:
+//   - 200 OK: Array of nearby meteorites in JSON format
+//   - 400 Bad Request: Invalid coordinates or radius
+//   - 500 Internal Server Error: Database operation failure
 func GetNearbyMeteorites(c *gin.Context) {
 	lat, err1 := strconv.ParseFloat(c.Query("lat"), 64)
 	lon, err2 := strconv.ParseFloat(c.Query("lon"), 64)
@@ -175,7 +234,16 @@ func GetNearbyMeteorites(c *gin.Context) {
 	c.JSON(http.StatusOK, meteorites)
 }
 
-// update SQL placeholders dynamically
+// formatQuery updates SQL query placeholders for pagination parameters.
+// It ensures proper parameter indexing when combining multiple filters.
+//
+// Parameters:
+//   - query: SQL query string with format placeholders
+//   - limitPos: Position of the limit parameter
+//   - offsetPos: Position of the offset parameter
+//
+// Returns:
+//   - string: Formatted query string with updated parameter positions
 func formatQuery(query string, limitPos, offsetPos int) string {
 	return fmt.Sprintf(query, limitPos, offsetPos)
 }

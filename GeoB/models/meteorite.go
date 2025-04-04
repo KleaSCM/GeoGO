@@ -1,5 +1,11 @@
 package models
 
+// Meteorite data model definition
+// Compliance Level: Critical
+// - Defines data structure for database operations
+// - Implements JSON serialization
+// - Manages data validation
+// - Handles data type conversions
 type Meteorite struct {
 	ID       int     `db:"id" json:"id"`
 	Name     string  `db:"name" json:"name"`
