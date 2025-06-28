@@ -1,19 +1,20 @@
-# GeoGO: Meteorite Impact Data API 🌍☄️
+# 🌍 GeoGO: Global Geospatial Data Explorer
+
+> **Explore the Universe, One Dataset at a Time** ☄️🌡️💨🌿🏗️🔥
 
 ## Overview
-GeoGO is a geospatial system that allows users to query meteorite impact locations worldwide. It provides a RESTful interface for retrieving meteorite data, searching for nearby impacts, and analyzing their distribution based on real-world scientific datasets. It also includes a **Next.js** frontend that displays these meteorites on an interactive map, showcasing the power of Go + geospatial technologies.
+
+GeoGO is a modern, full-stack geospatial data exploration platform that allows users to query and visualize multiple types of global geospatial datasets. From meteorite impacts to climate data, wind observations to vegetation zones, GeoGO provides a unified interface for exploring Earth's diverse geospatial information.
 
 **Key Features:**
-- Geospatial Meteorite Search – Query meteorite impact data by year, mass, location, or proximity
-- Interactive Next.js Frontend – Displays results on searchable meteorite cards + an interactive map
-- Real-World Dataset – Over 47,000+ recorded meteorite landings
-- Find Nearby Meteorites – Uses PostGIS to compute distance-based queries
-- Reverse Geocoding – Convert lat/lon → location names for better readability
-- Optimized Geospatial Performance – Powered by PostgreSQL + PostGIS for fast spatial indexing
-- High-Performance Go Backend – Concurrency (goroutines + channels) for parallel queries
-- Caching with Redis – Speeds up location-based lookups and geocoding responses
-- Automated Data Ingestion (ETL) – Optional Python-based automation for bulk data updates
-- Leaflet.js Map – Visualize meteorites dynamically with real-world coordinates
+- 🌍 **Multi-Dataset Support** – Meteorites, Climate, Wind, Vegetation, Infrastructure, Fire data
+- 🎨 **Beautiful Dark Mode UI** – Modern, responsive Next.js frontend with stunning visual design
+- 🗺️ **Interactive Maps** – Leaflet.js integration for dynamic geospatial visualization
+- 🔍 **Advanced Search** – Dataset-specific search forms with location-based queries
+- ⚡ **High Performance** – Go backend with PostgreSQL/PostGIS for lightning-fast spatial queries
+- 🎯 **Real-World Data** – 100,000+ records across multiple scientific datasets
+- 🔄 **Live Statistics** – Real-time dataset counts and metadata
+- 📱 **Responsive Design** – Works perfectly on desktop, tablet, and mobile
 
 ---
 
@@ -21,75 +22,260 @@ GeoGO is a geospatial system that allows users to query meteorite impact locatio
 
 | **Technology**             | **Purpose**                                   |
 |----------------------------|-----------------------------------------------|
-| **Go (Gin Framework)**     | High-performance backend & concurrency        |
-| **PostgreSQL + PostGIS**   | Geospatial database & indexing                |
-| **Redis**                  | Caching for reverse geocoding & queries       |
-| **Python (Pandas)**        | Data processing & ingestion                   |
-| **Leaflet + Next.js**      | Interactive map & UI for meteorite data       |
-| **Docker**                 | Containerization for production deployments   |
+| **Go (Gin Framework)**     | High-performance backend API                  |
+| **PostgreSQL + PostGIS**   | Geospatial database with spatial indexing    |
+| **Redis**                  | Caching for geocoding & query optimization   |
+| **Next.js 14**             | Modern React frontend with App Router        |
+| **TypeScript**             | Type-safe frontend development               |
+| **Leaflet.js**             | Interactive maps & geospatial visualization  |
+| **Python (Pandas)**        | Data processing & ETL automation             |
+| **SCSS Modules**           | Styled components with dark mode theming     |
 
 ---
 
-## Installation & Setup
+## 📊 Supported Datasets
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/KleaSCM/GeoGO.git
-   cd GeoGO
-``
-###  Install Dependencies:
-Go dependencies
-``go mod tidy``
+| **Dataset** | **Icon** | **Records** | **Description** |
+|-------------|----------|-------------|-----------------|
+| **Meteorites** | ☄️ | 45,000+ | Global meteorite impact and discovery data |
+| **Climate** | 🌡️ | 43,000+ | Australian climate station data (temperature, humidity, evaporation) |
+| **Wind** | 💨 | 60,000+ | Wind speed and direction observations |
+| **Vegetation** | 🌿 | 7+ | Vegetation classification and area data |
+| **Infrastructure** | 🏗️ | 1,000+ | Infrastructure and utility data |
+| **Fire** | 🔥 | Coming Soon | Fire risk and projection data |
 
-Make sure you have PostgreSQL with PostGIS installed.
-Update DSN (host/user/password/dbname) in db.InitDB() (e.g., dsn := "host=localhost port=5432 user=postgres password=secret dbname=GeoGO sslmode=disable")
+---
 
+## 🚀 Quick Start
 
-Python dependencies (optional, for data processing) 
-``pip install pandas``
-### Prepare the Database
+### Prerequisites
+- **Go** 1.21+ 
+- **Node.js** 18+
+- **PostgreSQL** 14+ with **PostGIS** extension
+- **Redis** (optional, for caching)
 
-Optional: Run Python ETL scripts if needed (e.g., python utils/ParseData.py).
-``python utils/ParseData.py``
+### 1. Clone & Setup
+```bash
+git clone https://github.com/yourusername/GeoGO.git
+cd GeoGO
+```
 
-### Seed the Database
-``go run cmd/seed/main.go``
-### Run the API Server
-``go run main.go``
+### 2. Backend Setup (GeoB)
+```bash
+cd GeoB
 
-The server should now be running on http://localhost:8080.
+# Install Go dependencies
+go mod tidy
 
-### 📡API Endpoints📡
+# Setup PostgreSQL with PostGIS
+# Create database: geogo
+# Enable PostGIS extension
 
-| **Endpoint**               | **Description**                                       |
-|----------------------------|-------------------------------------------------------|
-| `GET /meteorites`          | Fetch all meteorites with filters (year, mass, etc.)  |
-| `GET /meteorites/largest`  | Fetch the top 10 largest meteorites                   |
-| `GET /meteorites/nearby`   | Find meteorites near a given lat/lon + radius         |
-| `GET /meteorites/location` | Reverse geocode a given lat/lon                       |
+# Configure database connection in db/database.go
+# Update DSN: host=localhost port=5432 user=postgres password=your_password dbname=geogo
 
+# Create database schema
+psql -h localhost -U postgres -d geogo -f utils/SQL/create_unified_schema.sql
 
-id – Unique meteorite ID
-name – Official meteorite name
-nametype – Valid/Relict classification
-recclass – Type of meteorite
-mass – Mass (grams)
-fall – Whether it was found or fell
-year – Year of impact/discovery
-latitude & longitude – Impact coordinates
+# Process and load datasets
+python utils/process_datasets.py
+psql -h localhost -U postgres -d geogo -f utils/SQL/meteorites.sql
+psql -h localhost -U postgres -d geogo -f utils/SQL/climate_avg_temperature.sql
+# ... load other datasets as needed
 
-PostGIS functions like ST_X(geom) AS lon and ST_Y(geom) AS lat are used to retrieve numeric coordinates for the frontend.
+# Run the API server
+go run main.go
+```
 
-### 🛠️ Future Improvements
+### 3. Frontend Setup (geofe)
+```bash
+cd geofe
 
-Enhanced Caching for common queries (Redis expansions)
-Further concurrency optimization & worker pools in Go
-Frontend: Additional map layers, advanced filters, and UI enhancements
+# Install dependencies
+npm install
 
+# Start development server
+npm run dev
+```
 
-### 💡 Contributing
+### 4. Access the Application
+- **Frontend**: http://localhost:3000
+- **API**: http://localhost:8080
 
-Want to improve GeoGO?
-Fork the repo, make changes, and submit a pull request! :)
+---
 
-## 🌍 Explore the Universe, One Rock at a Time! ☄️
+## 📡 API Endpoints
+
+### Core Endpoints
+| **Endpoint** | **Method** | **Description** |
+|--------------|------------|-----------------|
+| `/datasets/types` | GET | Get all dataset types with metadata |
+| `/datasets` | GET | Query datasets with filters |
+| `/datasets/stats/:type` | GET | Get statistics for specific dataset type |
+
+### Query Parameters
+- `type` - Dataset type (meteorite, climate, wind, etc.)
+- `value_min` / `value_max` - Value range filtering
+- `location` - Location-based search with radius
+- `limit` / `offset` - Pagination
+
+### Example Queries
+```bash
+# Get all meteorites
+curl "http://localhost:8080/datasets?type=meteorite&limit=10"
+
+# Get climate data near Melbourne
+curl "http://localhost:8080/datasets?type=climate&location=Melbourne&radius=100000"
+
+# Get dataset statistics
+curl "http://localhost:8080/datasets/stats/meteorite"
+```
+
+---
+
+## 🎨 Frontend Features
+
+### Beautiful Dark Mode Design
+- **Modern UI** with glassmorphism effects
+- **Gradient backgrounds** and smooth animations
+- **Responsive grid layout** for dataset cards
+- **Interactive hover effects** and transitions
+
+### Dataset-Specific Pages
+- **Dynamic search forms** tailored to each dataset type
+- **Interactive maps** with Leaflet.js integration
+- **Real-time statistics** and metadata display
+- **Geocoding integration** for location names
+
+### User Experience
+- **Fast navigation** between dataset categories
+- **Live data updates** from the API
+- **Error handling** with user-friendly messages
+- **Loading states** and progress indicators
+
+---
+
+## 🗄️ Database Schema
+
+### Unified Dataset Table
+```sql
+CREATE TABLE datasets (
+    id SERIAL PRIMARY KEY,
+    dataset_type VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    lat DOUBLE PRECISION,
+    lon DOUBLE PRECISION,
+    value DOUBLE PRECISION,
+    unit VARCHAR(50),
+    metadata JSONB,
+    geom GEOMETRY(POINT, 4326)
+);
+```
+
+### Spatial Indexing
+- **PostGIS spatial indexes** for fast location queries
+- **GIST indexes** on geometry columns
+- **B-tree indexes** on dataset_type and value columns
+
+---
+
+## 🔧 Development
+
+### Project Structure
+```
+GeoGO/
+├── GeoB/                 # Go backend
+│   ├── api/             # API handlers
+│   ├── db/              # Database layer
+│   ├── models/          # Data models
+│   ├── utils/           # Data processing scripts
+│   └── main.go          # Server entry point
+├── geofe/               # Next.js frontend
+│   ├── app/             # App Router pages
+│   ├── components/      # React components
+│   └── public/          # Static assets
+└── README.md           # This file
+```
+
+### Adding New Datasets
+1. **Process data** in `GeoB/utils/process_datasets.py`
+2. **Load SQL** into database
+3. **Update frontend** dataset cards in `geofe/app/page.tsx`
+4. **Add search fields** in `geofe/components/SearchForm.tsx`
+
+---
+
+## 🚀 Deployment
+
+### Docker (Recommended)
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+```
+
+### Manual Deployment
+1. **Build frontend**: `npm run build`
+2. **Build backend**: `go build -o geogo main.go`
+3. **Setup production database** with PostGIS
+4. **Configure environment variables**
+5. **Deploy with your preferred hosting**
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m 'Add amazing feature'`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+### Development Guidelines
+- Follow **Go** and **TypeScript** best practices
+- Add **tests** for new features
+- Update **documentation** for API changes
+- Use **conventional commits** for commit messages
+
+---
+
+## 📈 Roadmap
+
+### 🎯 Upcoming Features
+- [ ] **Real-time data streaming** with WebSockets
+- [ ] **Advanced analytics** and data visualization
+- [ ] **Machine learning** integration for predictions
+- [ ] **Mobile app** with React Native
+- [ ] **API rate limiting** and authentication
+- [ ] **Data export** functionality (CSV, GeoJSON)
+
+### 🔧 Technical Improvements
+- [ ] **GraphQL API** for more flexible queries
+- [ ] **Microservices architecture** for scalability
+- [ ] **Kubernetes deployment** configurations
+- [ ] **Performance monitoring** and metrics
+- [ ] **Automated testing** pipeline
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **NASA** for meteorite impact data
+- **Australian Bureau of Meteorology** for climate data
+- **OpenStreetMap** for mapping data
+- **PostGIS** community for spatial database tools
+- **Next.js** team for the amazing React framework
+
+---
+
+## 🌟 Star the Repository
+
+If you find GeoGO useful, please give it a ⭐ on GitHub!
+
