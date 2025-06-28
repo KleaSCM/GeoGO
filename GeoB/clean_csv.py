@@ -12,7 +12,7 @@ if "GeoLocation" in df.columns:
 if "mass (g)" in df.columns:
     df.rename(columns={"mass (g)": "mass"}, inplace=True)
 # Ensure year is stored as an INTEGER
-df["year"] = pd.to_numeric(df["year"], errors='coerce').fillna(0).astype(int)
+df["year"] = pd.Series(pd.to_numeric(df["year"], errors='coerce')).fillna(0).astype(int)
 # **REORDER COLUMNS TO MATCH PostgreSQL TABLE**
 df = df[['id', 'name', 'nametype', 'recclass', 'mass', 'fall', 'year', 'reclat', 'reclong']]
 # Fill missing values with NULL

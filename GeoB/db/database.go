@@ -17,7 +17,7 @@ var DB *sqlx.DB
 
 func InitDB() {
 	var err error
-	dsn := "host=localhost port=5432 user=postgres password=Hisako1086 dbname=GeoGo sslmode=disable"
+	dsn := "host=localhost port=5432 user=postgres password=postgres dbname=GeoGo sslmode=disable"
 	DB, err = sqlx.Open("postgres", dsn)
 	if err != nil {
 		log.Fatal("❌ Database connection failed:", err)
